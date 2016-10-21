@@ -22,7 +22,8 @@ import org.neuroph.util.TransferFunctionType;
 public class ExercicioComputacional1 {
 
     public static DataSet getDataSet(String filename, String separator) throws IOException {
-        BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream("60percTrainingSet.txt")));
+        
+        BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(filename)));
                                     
         double[] x = new double[1];
         double[] y = new double[1];
@@ -39,16 +40,23 @@ public class ExercicioComputacional1 {
             y[0] = Double.parseDouble(partes[1]);
 
             trainingSet.addRow(x, y);
-            //file.insert(file.createRecord(id, lat, lgt, title));
 
             line = reader.readLine();
         }   
         reader.close();
         
         return trainingSet;
+        
     }
     
     public static void createNnet() {
+        
+        int qtdInputNeurons = 1;
+        int qtdHiddenNeuros = 5;
+        int qtdOutputNeurons = 1;
+        
+        NeuralNetwork mlp = new MultiLayerPerceptron(TransferFunctionType.SIGMOID, qtdInputNeurons, qtdHiddenNeuros, qtdOutputNeurons);
+        mlp.addListener(new NeuralNetworkValidationListener());
         
     }
     
@@ -69,13 +77,6 @@ public class ExercicioComputacional1 {
      */
     public static void main(String[] args) throws IOException {
         // TODO code application logic here
-        int qtdInputNeurons = 1;
-        int qtdHiddenNeuros = 5;
-        int qtdOutputNeurons = 1;
-        
-        NeuralNetwork mlp = new MultiLayerPerceptron(TransferFunctionType.SIGMOID, qtdInputNeurons, qtdHiddenNeuros, qtdOutputNeurons);
-        mlp.addListener(new NeuralNetworkValidationListener());
-        
         
     }
     
