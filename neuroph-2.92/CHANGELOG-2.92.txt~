@@ -1,0 +1,20 @@
+/////////////////////////////////////////////////
+
+  NEUROPH - JAVA NEURAL NETWORK FRAMEWORK
+  http://neuroph.sourceforge.net
+
+/////////////////////////////////////////////////
+
+This is the 2.92 release of the Neuroph framework which brings bug fixes, and few usefull new features.
+
+New features on framework level:
+	Classifier performance evaluation
+	Crossvalidation
+	More samples
+	Minor changes in API 
+
+
+New features in NeurophStudio:
+	Crossvalidation support in training dialog
+	Convolutional network wizard
+	License plate recognition
