@@ -9,6 +9,7 @@ import java.io.BufferedReader;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.ArrayList;
 import java.util.Arrays;
 import listeners.NeuralNetworkValidationListener;
 import org.neuroph.core.NeuralNetwork;
@@ -17,6 +18,7 @@ import org.neuroph.core.data.DataSetRow;
 import org.neuroph.nnet.MultiLayerPerceptron;
 import org.neuroph.nnet.learning.BackPropagation;
 import org.neuroph.nnet.learning.MomentumBackpropagation;
+import org.neuroph.util.NeuronProperties;
 import org.neuroph.util.TransferFunctionType;
 
 /**
@@ -59,9 +61,17 @@ public class ExercicioComputacional1 {
         int qtdHiddenNeuros = 5;
         int qtdOutputNeurons = 1;
         
+        // Armazenando os dados da quantidade de neurônios em cada camada
+        ArrayList<Integer> neuronsInLayers = new ArrayList<>();
+        neuronsInLayers.add(qtdInputNeurons); // Primeira camada: 1 ( X )
+        neuronsInLayers.add(qtdHiddenNeuros); // Segunda camada: 5 ou 20
+        neuronsInLayers.add(qtdOutputNeurons); // Terceira camada: 1 ( Y )
+        
         // Instanciando rede neural. Verificar se a função de transferência é a sigmoide mesmo pois o intervalo indicado no exercício é de -1 a 1.
         // A sigmoid é de 0 a 1. A hiperbólica vai de -1 a 1 como o exercício diz.
-        NeuralNetwork mlp = new MultiLayerPerceptron(TransferFunctionType.TANH, qtdInputNeurons, qtdHiddenNeuros, qtdOutputNeurons);
+        NeuronProperties np = new NeuronProperties(TransferFunctionType.TANH, true); // Configurando função de transferência e explicitando que os neurônios tem bias
+        
+        NeuralNetwork mlp = new MultiLayerPerceptron(neuronsInLayers, np);
         
         return mlp;
         
@@ -92,9 +102,10 @@ public class ExercicioComputacional1 {
         
     }
     
-    public static void validateNnet(NeuralNetwork nnet, DataSet validationSet) {
+    public static void validateNnet(NeuralNetwork nnet, DataSet validationSet, double learningRate, double momentum) {
         nnet.addListener(new NeuralNetworkValidationListener());
-        testNnet(nnet, validationSet);
+        //testNnet(nnet, validationSet);
+        trainNnet(nnet, validationSet, learningRate, momentum);
     }
     
     public static void testNnet(NeuralNetwork nnet, DataSet testSet) {
@@ -112,7 +123,8 @@ public class ExercicioComputacional1 {
      */
     public static void main(String[] args) throws IOException {
         // TODO code application logic here
-        
+        double learningRate = 0.5;
+        double momentum = 0;
     }
     
 }
