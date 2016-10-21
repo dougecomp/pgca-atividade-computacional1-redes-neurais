@@ -16,8 +16,8 @@ public class NeuralNetworkValidationListener implements NeuralNetworkEventListen
 
     @Override
     public void handleNeuralNetworkEvent(NeuralNetworkEvent nne) {
+        //nne.getEventType().toString();
         //throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-        //
     }
     
 }

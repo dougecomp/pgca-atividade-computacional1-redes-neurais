@@ -9,10 +9,14 @@ import java.io.BufferedReader;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.Arrays;
 import listeners.NeuralNetworkValidationListener;
 import org.neuroph.core.NeuralNetwork;
 import org.neuroph.core.data.DataSet;
+import org.neuroph.core.data.DataSetRow;
 import org.neuroph.nnet.MultiLayerPerceptron;
+import org.neuroph.nnet.learning.BackPropagation;
+import org.neuroph.nnet.learning.MomentumBackpropagation;
 import org.neuroph.util.TransferFunctionType;
 
 /**
@@ -49,27 +53,58 @@ public class ExercicioComputacional1 {
         
     }
     
-    public static void createNnet() {
+    public static NeuralNetwork createNnet() {
         
         int qtdInputNeurons = 1;
         int qtdHiddenNeuros = 5;
         int qtdOutputNeurons = 1;
         
-        NeuralNetwork mlp = new MultiLayerPerceptron(TransferFunctionType.SIGMOID, qtdInputNeurons, qtdHiddenNeuros, qtdOutputNeurons);
-        mlp.addListener(new NeuralNetworkValidationListener());
+        // Instanciando rede neural. Verificar se a função de transferência é a sigmoide mesmo pois o intervalo indicado no exercício é de -1 a 1.
+        // A sigmoid é de 0 a 1. A hiperbólica vai de -1 a 1 como o exercício diz.
+        NeuralNetwork mlp = new MultiLayerPerceptron(TransferFunctionType.TANH, qtdInputNeurons, qtdHiddenNeuros, qtdOutputNeurons);
+        
+        return mlp;
         
     }
     
-    public static void trainNnet() {
+    public static void trainNnet(NeuralNetwork nnet, DataSet data, double learningRate, double momentum) {
+        
+        // Configurando tipo de treinamento
+        if(momentum > 0) {
+            MomentumBackpropagation lr = new MomentumBackpropagation();
+            lr.setMomentum(momentum);
+            nnet.setLearningRule(lr);
+        } else {
+            BackPropagation lr = new BackPropagation();
+            nnet.setLearningRule(lr);
+        }
+        
+        // Configurando taxa de aprendizado
+        if(nnet.getLearningRule() instanceof MomentumBackpropagation) {
+            ((MomentumBackpropagation) nnet.getLearningRule()).setLearningRate(learningRate);
+        } else if(nnet.getLearningRule() instanceof BackPropagation) {
+            ((BackPropagation) nnet.getLearningRule()).setLearningRate(learningRate);
+        }
+        
+        nnet.randomizeWeights(-0.5, 0.5); // Gerar pesos aleatório entre -0.5 e 0.5 antes de treinar
+        
+        nnet.learn(data);
         
     }
     
-    public static void validateNnet() {
-        
+    public static void validateNnet(NeuralNetwork nnet, DataSet validationSet) {
+        nnet.addListener(new NeuralNetworkValidationListener());
+        testNnet(nnet, validationSet);
     }
     
-    public static void testNnet() {
-        
+    public static void testNnet(NeuralNetwork nnet, DataSet testSet) {
+        for(DataSetRow row : testSet.getRows()) {
+            nnet.setInput(row.getInput());
+            nnet.calculate();
+            double[] networkOutput = nnet.getOutput();
+            System.out.print("Input: " + Arrays.toString(row.getInput()) );
+            System.out.println("Output: " + Arrays.toString(networkOutput) );
+        }
     }
     
     /**
