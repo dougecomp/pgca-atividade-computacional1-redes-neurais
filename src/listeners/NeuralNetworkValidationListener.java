@@ -5,19 +5,24 @@
  */
 package listeners;
 
+import org.jfree.data.xy.XYSeries;
+import org.neuroph.core.events.LearningEvent;
+import org.neuroph.core.events.LearningEventListener;
 import org.neuroph.core.events.NeuralNetworkEvent;
-import org.neuroph.core.events.NeuralNetworkEventListener;
+import org.neuroph.nnet.MultiLayerPerceptron;
 
 /**
  *
  * @author douglas
  */
-public class NeuralNetworkValidationListener implements NeuralNetworkEventListener {
+public class NeuralNetworkValidationListener implements LearningEventListener {
+
+    // Gráfico da época (X) pelo erro quadrático (Y)
+    public XYSeries erros = new XYSeries("Erro da Rede");
 
     @Override
-    public void handleNeuralNetworkEvent(NeuralNetworkEvent nne) {
-        //nne.getEventType().toString();
-        //throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    public void handleLearningEvent(LearningEvent le) {
+        
     }
     
 }

@@ -23,6 +23,8 @@ import org.jfree.data.xy.XYSeriesCollection;
 import org.neuroph.core.NeuralNetwork;
 import org.neuroph.core.data.DataSet;
 import org.neuroph.core.data.DataSetRow;
+import org.neuroph.core.learning.error.ErrorFunction;
+import org.neuroph.core.learning.error.MeanSquaredError;
 import org.neuroph.nnet.MultiLayerPerceptron;
 import org.neuroph.nnet.learning.BackPropagation;
 import org.neuroph.nnet.learning.MomentumBackpropagation;
@@ -45,23 +47,32 @@ public class ExercicioComputacional1 {
     public static DataSet getDataSet(String filename, String separator) throws IOException {
         
         BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(filename)));
-                                    
-        double[] x = new double[1];
-        double[] y = new double[1];
 
         DataSet dataSet = new DataSet(1, 1);
         // Ler o conjunto de dados de um arquivo
         
         String line = reader.readLine();
         while(line!=null){
+            double[] x = new double[1];
+            double[] y = new double[1];
             String[] partes = line.split(separator);
             
             x[0] = Double.parseDouble(partes[0]);
+            if(x[0] > 1) {
+                x[0] = 0.99;
+            } else if(x[0] < -1) {
+                x[0] = -0.99;
+            } 
             
             y[0] = Double.parseDouble(partes[1]);
+            if(y[0] > 1) {
+                y[0] = 0.99;
+            } else if(y[0] < -1) {
+                y[0] = -0.99;
+            }
 
             dataSet.addRow(x, y);
-
+            
             line = reader.readLine();
         }   
         reader.close();
@@ -78,7 +89,7 @@ public class ExercicioComputacional1 {
      * @param qtdOutputNeurons
      * @return 
      */
-    public static NeuralNetwork createNnet(int qtdInputNeurons, int qtdHiddenNeurons, int qtdOutputNeurons) {
+    public static MultiLayerPerceptron createNnet(int qtdInputNeurons, int qtdHiddenNeurons, int qtdOutputNeurons) {
         
         // Armazenando os dados da quantidade de neurônios em cada camada
         ArrayList<Integer> neuronsInLayers = new ArrayList<>();
@@ -90,7 +101,7 @@ public class ExercicioComputacional1 {
         // A sigmoid é de 0 a 1. A hiperbólica vai de -1 a 1 como o exercício diz.
         NeuronProperties np = new NeuronProperties(TransferFunctionType.TANH, true); // Configurando função de transferência e explicitando que os neurônios tem bias
         
-        NeuralNetwork mlp = new MultiLayerPerceptron(neuronsInLayers, np);
+        MultiLayerPerceptron mlp = new MultiLayerPerceptron(neuronsInLayers, np);
         
         return mlp;
         
@@ -98,13 +109,22 @@ public class ExercicioComputacional1 {
     
     public static void trainNnet(NeuralNetwork nnet, DataSet data, double learningRate, double momentum) {
         
+        //Configurando função de Erro Quadrático Médio
+        MeanSquaredError mse = new MeanSquaredError();
+        mse.reset();
+        int maxIterations = 200;
+        
         // Configurando tipo de treinamento
         if(momentum > 0) {
             MomentumBackpropagation lr = new MomentumBackpropagation();
             lr.setMomentum(momentum);
+            lr.setErrorFunction(mse);
+            lr.setMaxIterations(maxIterations);
             nnet.setLearningRule(lr);
         } else {
             BackPropagation lr = new BackPropagation();
+            lr.setErrorFunction(mse);
+            lr.setMaxIterations(maxIterations);
             nnet.setLearningRule(lr);
         }
         
@@ -115,18 +135,24 @@ public class ExercicioComputacional1 {
             ((BackPropagation) nnet.getLearningRule()).setLearningRate(learningRate);
         }
         
-        nnet.randomizeWeights(-0.5, 0.5); // Gerar pesos aleatório entre -0.5 e 0.5 antes de treinar
+        nnet.randomizeWeights(-0.1, 0.1); // Gerar pesos aleatório entre -0.1 e 0.1 antes de treinar
         
+        //NeuralNetworkValidationListener nnvl = new NeuralNetworkValidationListener();
+        NeuralNetworkLearningEventListener nnlel = new NeuralNetworkLearningEventListener();
+        nnet.getLearningRule().addListener(nnlel);
         nnet.learn(data);
+        System.out.println("Menor Erro: "+nnlel.menorErro);
+        plotarGrafico(nnlel.erros, "Erros por época", "Épocas", "Erro");
+        nnet.getLearningRule().removeListener(nnlel);
         
     }
     
     public static void validateNnet(NeuralNetwork nnet, DataSet validationSet, double learningRate, double momentum) {
         NeuralNetworkValidationListener nnvl = new NeuralNetworkValidationListener();
-        nnet.addListener(nnvl);
-        //testNnet(nnet, validationSet);
+        nnet.getLearningRule().addListener(nnvl);
+
         trainNnet(nnet, validationSet, learningRate, momentum);
-        nnet.removeListener(nnvl);
+        nnet.getLearningRule().removeListener(nnvl);
     }
     
     public static void testNnet(NeuralNetwork nnet, DataSet testSet) {
@@ -141,7 +167,6 @@ public class ExercicioComputacional1 {
     
     public static void plotarGrafico(XYSeries pontos, String tituloGrafico, String nomeEixoX, String nomeEixoY) {
         
-
         XYSeriesCollection dados = new XYSeriesCollection();
         dados.addSeries(pontos);
 
@@ -167,11 +192,14 @@ public class ExercicioComputacional1 {
      */
     public static void main(String[] args) throws IOException {
         // TODO code application logic here
-        double learningRate = 0.5;
+        double learningRate = 0.01;
         double momentum = 0;
         
-        // Gráfico da época (X) pelo erro quadrático (Y)
-        XYSeries erros = new XYSeries("Erro da Rede");
+        MultiLayerPerceptron mlp = createNnet(1, 5, 1);
+        DataSet ds = getDataSet("dataSetTest.txt", ";");
+        //System.out.println(ds.getRows().toString());
+        
+        trainNnet(mlp, ds, learningRate, momentum);
     }
     
 }
