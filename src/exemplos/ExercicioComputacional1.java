@@ -107,12 +107,12 @@ public class ExercicioComputacional1 {
         
     }
     
-    public static void trainNnet(NeuralNetwork nnet, DataSet data, double learningRate, double momentum) {
+    public static void trainNnet(NeuralNetwork nnet, DataSet data, double learningRate, double momentum, int maxIterations) {
         
         //Configurando função de Erro Quadrático Médio
         MeanSquaredError mse = new MeanSquaredError();
+        //Reiniciar erro
         mse.reset();
-        int maxIterations = 200;
         
         // Configurando tipo de treinamento
         if(momentum > 0) {
@@ -131,20 +131,23 @@ public class ExercicioComputacional1 {
         }
         
         nnet.randomizeWeights(-0.1, 0.1); // Gerar pesos aleatório entre -0.1 e 0.1 antes de treinar
-        
-        //NeuralNetworkValidationListener nnvl = new NeuralNetworkValidationListener();
+
         NeuralNetworkLearningEventListener nnlel = new NeuralNetworkLearningEventListener();
         nnet.getLearningRule().addListener(nnlel);
         nnet.learn(data);
+        
         listenerTreinamento = nnlel;
+        
         System.out.println("Menor Erro: "+nnlel.menorErro);
         System.out.println("Vetor de pesos com menor erro: ("+nnlel.pesosMenorErro.length+" pesos) "+Arrays.toString(nnlel.pesosMenorErro));
+        
         plotarGrafico(nnlel.erros, "Erro Quadrático Médio Durante Treinamento", "Épocas", "Erro");
+        
         nnet.getLearningRule().removeListener(nnlel);
         
     }
     
-    public static void validateNnet(NeuralNetwork nnet, DataSet validationSet, double learningRate, double momentum) {
+    public static void validateNnet(NeuralNetwork nnet, DataSet validationSet, double learningRate, double momentum, int qtdMaximumIteration) {
         NeuralNetworkValidationListener nnvl = new NeuralNetworkValidationListener();
         nnet.getLearningRule().addListener(nnvl);
         
@@ -157,7 +160,14 @@ public class ExercicioComputacional1 {
         nnet.setWeights(pesos);
 
         //Validar a rede com os dados de validação e os vetor de pesos com o menor erro durante o treinamento.
-        trainNnet(nnet, validationSet, learningRate, momentum);
+        trainNnet(nnet, validationSet, learningRate, momentum, qtdMaximumIteration);
+        
+        if(nnvl.menorErro <= listenerTreinamento.menorErro) {
+            System.out.println("A rede apresentou um erro menor do que no treinamento! Validação concluída com sucesso!");
+        } else {
+            System.out.println("A rede apresentou erro maior do que no treinamento! Interrompendo execução.");
+            System.exit(0);
+        }
         nnet.getLearningRule().removeListener(nnvl);
     }
     
@@ -202,31 +212,37 @@ public class ExercicioComputacional1 {
         // TODO code application logic here
         double learningRate = 0.01;
         double momentum = 0;
+        int qtdNeuronsHiddenLayer = 5;
+        int qtdMaximunIteration = 200;
+        int qtdMaximunIterationValidation = 40;
+        boolean validateAndTest = false;
         String filenameTraining = "dataSetTraining.txt";
         String filenameValidation = "dataSetValidation.txt";
         String filenameTest = "dataSetTest.txt";
         String separator = ";";
         
         //Criando rede neural
-        MultiLayerPerceptron mlp = createNnet(1, 5, 1);
+        MultiLayerPerceptron mlp = createNnet(1, qtdNeuronsHiddenLayer, 1);
         
         //Lendo conjunto de treinamento
         DataSet ds = getDataSet(filenameTraining, separator);
         
         //Treinando a rede neural
-        trainNnet(mlp, ds, learningRate, momentum);
+        trainNnet(mlp, ds, learningRate, momentum, qtdMaximunIteration);
         
-        //Lendo conjunto de validação
-        ds = getDataSet(filenameValidation, separator);
-        
-        //Validando a rede neural
-        validateNnet(mlp, ds, learningRate, momentum);
-        
-        //Lendo conjunto de teste
-        ds = getDataSet(filenameTest, separator);
-        
-        //Testando rede neural
-        testNnet(mlp, ds);
+        if(validateAndTest) {
+            //Lendo conjunto de validação
+            ds = getDataSet(filenameValidation, separator);
+
+            //Validando a rede neural
+            validateNnet(mlp, ds, learningRate, momentum, qtdMaximunIterationValidation);
+
+            //Lendo conjunto de teste
+            ds = getDataSet(filenameTest, separator);
+
+            //Testando rede neural
+            testNnet(mlp, ds);
+        }
     }
     
 }
