@@ -202,20 +202,30 @@ public class ExercicioComputacional1 {
         // TODO code application logic here
         double learningRate = 0.01;
         double momentum = 0;
-        String filenameTraining = "dataSetTest.txt";
-        String filenameValidation = "dataSetTest.txt";
+        String filenameTraining = "dataSetTraining.txt";
+        String filenameValidation = "dataSetValidation.txt";
         String filenameTest = "dataSetTest.txt";
         String separator = ";";
         
+        //Criando rede neural
         MultiLayerPerceptron mlp = createNnet(1, 5, 1);
+        
+        //Lendo conjunto de treinamento
         DataSet ds = getDataSet(filenameTraining, separator);
         
+        //Treinando a rede neural
         trainNnet(mlp, ds, learningRate, momentum);
         
+        //Lendo conjunto de validação
         ds = getDataSet(filenameValidation, separator);
+        
+        //Validando a rede neural
         validateNnet(mlp, ds, learningRate, momentum);
         
+        //Lendo conjunto de teste
         ds = getDataSet(filenameTest, separator);
+        
+        //Testando rede neural
         testNnet(mlp, ds);
     }
     
