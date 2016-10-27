@@ -8,7 +8,7 @@ package listeners;
 import org.jfree.data.xy.XYSeries;
 import org.neuroph.core.events.LearningEvent;
 import org.neuroph.core.events.LearningEventListener;
-import org.neuroph.core.events.NeuralNetworkEvent;
+import org.neuroph.core.learning.LearningRule;
 import org.neuroph.nnet.MultiLayerPerceptron;
 
 /**
@@ -22,6 +22,11 @@ public class NeuralNetworkValidationListener implements LearningEventListener {
 
     @Override
     public void handleLearningEvent(LearningEvent le) {
+     
+        LearningRule lr = (LearningRule) le.getSource();
+        MultiLayerPerceptron mlp = (MultiLayerPerceptron) lr.getNeuralNetwork();
+        
+        
         
     }
     

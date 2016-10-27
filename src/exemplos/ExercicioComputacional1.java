@@ -23,7 +23,6 @@ import org.jfree.data.xy.XYSeriesCollection;
 import org.neuroph.core.NeuralNetwork;
 import org.neuroph.core.data.DataSet;
 import org.neuroph.core.data.DataSetRow;
-import org.neuroph.core.learning.error.ErrorFunction;
 import org.neuroph.core.learning.error.MeanSquaredError;
 import org.neuroph.nnet.MultiLayerPerceptron;
 import org.neuroph.nnet.learning.BackPropagation;
@@ -120,19 +119,14 @@ public class ExercicioComputacional1 {
             lr.setMomentum(momentum);
             lr.setErrorFunction(mse);
             lr.setMaxIterations(maxIterations);
+            lr.setLearningRate(learningRate);
             nnet.setLearningRule(lr);
         } else {
             BackPropagation lr = new BackPropagation();
             lr.setErrorFunction(mse);
             lr.setMaxIterations(maxIterations);
+            lr.setLearningRate(learningRate);
             nnet.setLearningRule(lr);
-        }
-        
-        // Configurando taxa de aprendizado
-        if(nnet.getLearningRule() instanceof MomentumBackpropagation) {
-            ((MomentumBackpropagation) nnet.getLearningRule()).setLearningRate(learningRate);
-        } else if(nnet.getLearningRule() instanceof BackPropagation) {
-            ((BackPropagation) nnet.getLearningRule()).setLearningRate(learningRate);
         }
         
         nnet.randomizeWeights(-0.1, 0.1); // Gerar pesos aleatório entre -0.1 e 0.1 antes de treinar
@@ -142,7 +136,8 @@ public class ExercicioComputacional1 {
         nnet.getLearningRule().addListener(nnlel);
         nnet.learn(data);
         System.out.println("Menor Erro: "+nnlel.menorErro);
-        plotarGrafico(nnlel.erros, "Erros por época", "Épocas", "Erro");
+        System.out.println("Vetor de pesos com menor erro: ("+nnlel.pesosMenorErro.length+" pesos) "+Arrays.toString(nnlel.pesosMenorErro));
+        plotarGrafico(nnlel.erros, "Erro Quadrático Médio Durante Treinamento", "Épocas", "Erro");
         nnet.getLearningRule().removeListener(nnlel);
         
     }

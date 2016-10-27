@@ -18,7 +18,7 @@ import org.neuroph.nnet.MultiLayerPerceptron;
 public class NeuralNetworkLearningEventListener implements LearningEventListener{
 
     // Gráfico da época (X) pelo erro quadrático (Y)
-    public XYSeries erros = new XYSeries("Erro da Rede");
+    public XYSeries erros = new XYSeries("Erro Quadrático Médio");
     public int epocaMenorErro;
     public double menorErro = 10;
     public Double[] pesosMenorErro;
