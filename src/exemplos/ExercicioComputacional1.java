@@ -36,6 +36,7 @@ import org.neuroph.util.TransferFunctionType;
  */
 public class ExercicioComputacional1 {
 
+    private static NeuralNetworkLearningEventListener listenerTreinamento;
     /**
      * Método para leitura de um arquivo em txt. Poderá ser utilizado para os três conjuntos (treino,validacao,teste)
      * @param filename
@@ -135,6 +136,7 @@ public class ExercicioComputacional1 {
         NeuralNetworkLearningEventListener nnlel = new NeuralNetworkLearningEventListener();
         nnet.getLearningRule().addListener(nnlel);
         nnet.learn(data);
+        listenerTreinamento = nnlel;
         System.out.println("Menor Erro: "+nnlel.menorErro);
         System.out.println("Vetor de pesos com menor erro: ("+nnlel.pesosMenorErro.length+" pesos) "+Arrays.toString(nnlel.pesosMenorErro));
         plotarGrafico(nnlel.erros, "Erro Quadrático Médio Durante Treinamento", "Épocas", "Erro");
@@ -145,19 +147,31 @@ public class ExercicioComputacional1 {
     public static void validateNnet(NeuralNetwork nnet, DataSet validationSet, double learningRate, double momentum) {
         NeuralNetworkValidationListener nnvl = new NeuralNetworkValidationListener();
         nnet.getLearningRule().addListener(nnvl);
+        
+        // Convertendo de double[] para Double[]
+        // Isso foi feito devido o getWeights retornar Double[] e o setWeigths receber double[]
+        double[] pesos = new double[]{};
+        for (int i = 0; i < listenerTreinamento.pesosMenorErro.length; i++) {
+            pesos[i] = listenerTreinamento.pesosMenorErro[i];
+        }
+        nnet.setWeights(pesos);
 
+        //Validar a rede com os dados de validação e os vetor de pesos com o menor erro durante o treinamento.
         trainNnet(nnet, validationSet, learningRate, momentum);
         nnet.getLearningRule().removeListener(nnvl);
     }
     
     public static void testNnet(NeuralNetwork nnet, DataSet testSet) {
+        XYSeries pontos = new XYSeries("Função");
         for(DataSetRow row : testSet.getRows()) {
             nnet.setInput(row.getInput());
             nnet.calculate();
             double[] networkOutput = nnet.getOutput();
+            pontos.add(row.getInput()[0], networkOutput[0]);
             System.out.print("Input: " + Arrays.toString(row.getInput()) );
             System.out.println("Output: " + Arrays.toString(networkOutput) );
         }
+        plotarGrafico(pontos, "Função Aproximada Através da Rede Neural", "X", "Y");
     }
     
     public static void plotarGrafico(XYSeries pontos, String tituloGrafico, String nomeEixoX, String nomeEixoY) {
@@ -177,8 +191,7 @@ public class ExercicioComputacional1 {
         frame.setSize(640, 480);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.getContentPane().add(panel);
-        frame.setVisible(true);
-		
+        frame.setVisible(true);	
         
     }
     
@@ -189,12 +202,21 @@ public class ExercicioComputacional1 {
         // TODO code application logic here
         double learningRate = 0.01;
         double momentum = 0;
+        String filenameTraining = "dataSetTest.txt";
+        String filenameValidation = "dataSetTest.txt";
+        String filenameTest = "dataSetTest.txt";
+        String separator = ";";
         
         MultiLayerPerceptron mlp = createNnet(1, 5, 1);
-        DataSet ds = getDataSet("dataSetTest.txt", ";");
-        //System.out.println(ds.getRows().toString());
+        DataSet ds = getDataSet(filenameTraining, separator);
         
         trainNnet(mlp, ds, learningRate, momentum);
+        
+        ds = getDataSet(filenameValidation, separator);
+        validateNnet(mlp, ds, learningRate, momentum);
+        
+        ds = getDataSet(filenameTest, separator);
+        testNnet(mlp, ds);
     }
     
 }
