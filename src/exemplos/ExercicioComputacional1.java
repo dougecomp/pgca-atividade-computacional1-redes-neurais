@@ -49,8 +49,7 @@ public class ExercicioComputacional1 {
         BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(filename)));
 
         DataSet dataSet = new DataSet(1, 1);
-        // Ler o conjunto de dados de um arquivo
-        
+                
         String line = reader.readLine();
         while(line!=null){
             double[] x = new double[1];
@@ -115,14 +114,14 @@ public class ExercicioComputacional1 {
         mse.reset();
         
         // Configurando tipo de treinamento
-        if(momentum > 0) {
+        if(momentum > 0) { // backpropagation com momentum?
             MomentumBackpropagation lr = new MomentumBackpropagation();
             lr.setMomentum(momentum);
             lr.setErrorFunction(mse);
             lr.setMaxIterations(maxIterations);
             lr.setLearningRate(learningRate);
             nnet.setLearningRule(lr);
-        } else {
+        } else { // backpropagation sem momentum
             BackPropagation lr = new BackPropagation();
             lr.setErrorFunction(mse);
             lr.setMaxIterations(maxIterations);
@@ -132,10 +131,12 @@ public class ExercicioComputacional1 {
         
         nnet.randomizeWeights(-0.1, 0.1); // Gerar pesos aleatório entre -0.1 e 0.1 antes de treinar
 
+        // Adicionar listener para capturar as informações de erro e pesos durante o treinamento
         NeuralNetworkLearningEventListener nnlel = new NeuralNetworkLearningEventListener();
         nnet.getLearningRule().addListener(nnlel);
         nnet.learn(data);
         
+        // Armazenando o listener do treinamento pois ele guardou informações úteis para a validação
         listenerTreinamento = nnlel;
         
         System.out.println("Menor Erro: "+nnlel.menorErro);
@@ -209,16 +210,23 @@ public class ExercicioComputacional1 {
      * @param args the command line arguments
      */
     public static void main(String[] args) throws IOException {
-        // TODO code application logic here
+        
+        // Parâmetros alteráveis
         double learningRate = 0.01;
         double momentum = 0;
         int qtdNeuronsHiddenLayer = 5;
+        
+        // Critério de parada
         int qtdMaximunIteration = 200;
-        int qtdMaximunIterationValidation = 40;
+        
+        //Validar e testar?
         boolean validateAndTest = false;
-        String filenameTraining = "dataSetTraining.txt";
-        String filenameValidation = "dataSetValidation.txt";
-        String filenameTest = "dataSetTest.txt";
+        
+        String filenameTrainingTestDebugNN = "dataSetTrainingDebugNN.txt";
+        //Arquivos com os dados de teste, validação e treinamento
+        String filenameTraining = "trainingSet.txt";
+        String filenameValidation = "validationSet.txt";
+        String filenameTest = "testSet.txt";
         String separator = ";";
         
         //Criando rede neural
@@ -235,7 +243,7 @@ public class ExercicioComputacional1 {
             ds = getDataSet(filenameValidation, separator);
 
             //Validando a rede neural
-            validateNnet(mlp, ds, learningRate, momentum, qtdMaximunIterationValidation);
+            validateNnet(mlp, ds, learningRate, momentum, qtdMaximunIteration);
 
             //Lendo conjunto de teste
             ds = getDataSet(filenameTest, separator);
