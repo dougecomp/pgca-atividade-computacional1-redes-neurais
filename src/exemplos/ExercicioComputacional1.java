@@ -57,11 +57,11 @@ public class ExercicioComputacional1 {
             String[] partes = line.split(separator);
             
             x[0] = Double.parseDouble(partes[0]);
-            if(x[0] > 1) {
+            /*if(x[0] > 1) {
                 x[0] = 0.99;
             } else if(x[0] < -1) {
                 x[0] = -0.99;
-            } 
+            }*/ 
             
             y[0] = Double.parseDouble(partes[1]);
             if(y[0] > 1) {
@@ -139,36 +139,58 @@ public class ExercicioComputacional1 {
         // Armazenando o listener do treinamento pois ele guardou informações úteis para a validação
         listenerTreinamento = nnlel;
         
-        System.out.println("Menor Erro: "+nnlel.menorErro);
-        System.out.println("Vetor de pesos com menor erro: ("+nnlel.pesosMenorErro.length+" pesos) "+Arrays.toString(nnlel.pesosMenorErro));
+        //System.out.println("Menor Erro: "+nnlel.menorErro);
+        //System.out.println("Vetor de pesos com menor erro: ("+nnlel.pesosMenorErro.length+" pesos) "+Arrays.toString(nnlel.pesosMenorErro));
         
-        plotarGrafico(nnlel.erros, "Erro Quadrático Médio Durante Treinamento", "Épocas", "Erro");
+        //plotarGrafico(nnlel.erros, "Erro Quadrático Médio Durante Treinamento", "Épocas", "Erro");
         
         nnet.getLearningRule().removeListener(nnlel);
         
     }
     
     public static void validateNnet(NeuralNetwork nnet, DataSet validationSet, double learningRate, double momentum, int qtdMaximumIteration) {
-        NeuralNetworkValidationListener nnvl = new NeuralNetworkValidationListener();
-        nnet.getLearningRule().addListener(nnvl);
         
         // Convertendo de double[] para Double[]
         // Isso foi feito devido o getWeights retornar Double[] e o setWeigths receber double[]
-        double[] pesos = new double[]{};
+        double[] pesos = new double[listenerTreinamento.pesosMenorErro.length];
         for (int i = 0; i < listenerTreinamento.pesosMenorErro.length; i++) {
             pesos[i] = listenerTreinamento.pesosMenorErro[i];
         }
-        nnet.setWeights(pesos);
+        nnet.randomizeWeights(-0.1, 0.1);
+        //nnet.setWeights(pesos);
+        
+        /*if(momentum > 0) {
+            MomentumBackpropagation lr = (MomentumBackpropagation) nnet.getLearningRule();
+            //lr.getErrorFunction().reset();
+            nnet.setLearningRule(lr);
+        } else {
+            BackPropagation lr = (BackPropagation) nnet.getLearningRule();
+            //lr.getErrorFunction().reset();
+            nnet.setLearningRule(lr);
+        }*/
 
         //Validar a rede com os dados de validação e os vetor de pesos com o menor erro durante o treinamento.
-        trainNnet(nnet, validationSet, learningRate, momentum, qtdMaximumIteration);
+        //trainNnet(nnet, validationSet, learningRate, momentum, qtdMaximumIteration);
+        NeuralNetworkValidationListener nnvl = new NeuralNetworkValidationListener();
+        nnet.getLearningRule().addListener(nnvl);
+        nnet.learn(validationSet);
+        System.out.println("Menor erro treinamento: "+listenerTreinamento.menorErro);
+        System.out.println("Menor erro validação: "+nnvl.menorErro);
         
-        if(nnvl.menorErro <= listenerTreinamento.menorErro) {
-            System.out.println("A rede apresentou um erro menor do que no treinamento! Validação concluída com sucesso!");
+        /*if(nnvl.menorErro <= listenerTreinamento.menorErro) {
+            System.out.println("A rede apresentou um erro menor ou igual do que no treinamento! Validação concluída com sucesso!");
         } else {
             System.out.println("A rede apresentou erro maior do que no treinamento! Interrompendo execução.");
             System.exit(0);
-        }
+        }*/
+        
+        //plotarGrafico(nnvl.erros, "Erro Quadrático Médio Durante Validação", "Épocas", "Erro");
+        
+        XYSeries[] series = new XYSeries[2];
+        series[0] = listenerTreinamento.erros;
+        series[1] = nnvl.erros;
+        plotarGraficoMulti(series, "Erro Quadrático Médio Treinamento/Validação", "Épocas", "Erro");
+        
         nnet.getLearningRule().removeListener(nnvl);
     }
     
@@ -206,6 +228,29 @@ public class ExercicioComputacional1 {
         
     }
     
+    public static void plotarGraficoMulti(XYSeries pontos[], String tituloGrafico, String nomeEixoX, String nomeEixoY) {
+        
+        XYSeriesCollection dados = new XYSeriesCollection();
+        for (XYSeries ponto : pontos) {
+            dados.addSeries(ponto);
+        }
+
+        JFreeChart grafico = ChartFactory.createXYLineChart(
+            tituloGrafico,
+            nomeEixoX,
+            nomeEixoY,
+            dados, PlotOrientation.VERTICAL, true, true, true
+        );
+
+        ChartPanel panel = new ChartPanel(grafico);
+        JFrame frame = new JFrame();
+        frame.setSize(640, 480);
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.getContentPane().add(panel);
+        frame.setVisible(true);	
+        
+    }
+    
     /**
      * @param args the command line arguments
      */
@@ -220,7 +265,7 @@ public class ExercicioComputacional1 {
         int qtdMaximunIteration = 200;
         
         //Validar e testar?
-        boolean validateAndTest = false;
+        boolean validateAndTest = true;
         
         String filenameTrainingTestDebugNN = "dataSetTrainingDebugNN.txt";
         //Arquivos com os dados de teste, validação e treinamento

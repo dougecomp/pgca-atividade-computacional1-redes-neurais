@@ -39,17 +39,13 @@ public class NeuralNetworkValidationListener implements LearningEventListener {
         
         double erro = mlp.getLearningRule().getErrorFunction().getTotalError();
         int epoca = mlp.getLearningRule().getCurrentIteration();
-
+        
         erros.add(epoca, erro);
         
         if(erro < menorErro) {
             menorErro = erro;
             pesosMenorErro = mlp.getWeights();
         }
-
-        //Imprimindo os pesos
-        //Para o quê?
-        System.out.println("Pesos: "+mlp.getWeights().toString());
         
     }
     
