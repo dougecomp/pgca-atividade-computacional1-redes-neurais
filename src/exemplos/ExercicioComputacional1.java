@@ -37,7 +37,7 @@ import org.neuroph.util.TransferFunctionType;
 public class ExercicioComputacional1 {
 
     private static NeuralNetworkLearningEventListener listenerTreinamento;
-    private static final double intervaloPesos = 0.1;
+    private static final double INTERVALOPESOS = 0.1;
     /**
      * Método para leitura de um arquivo em txt. Poderá ser utilizado para os três conjuntos (treino,validacao,teste)
      * @param filename
@@ -130,7 +130,7 @@ public class ExercicioComputacional1 {
             nnet.setLearningRule(lr);
         }
         
-        nnet.randomizeWeights(-intervaloPesos, intervaloPesos); // Gerar pesos aleatório entre -0.1 e 0.1 antes de treinar
+        nnet.randomizeWeights(-INTERVALOPESOS, INTERVALOPESOS); // Gerar pesos aleatório entre -0.1 e 0.1 antes de treinar
 
         // Adicionar listener para capturar as informações de erro e pesos durante o treinamento
         NeuralNetworkLearningEventListener nnlel = new NeuralNetworkLearningEventListener();
@@ -158,7 +158,7 @@ public class ExercicioComputacional1 {
             pesos[i] = listenerTreinamento.pesosMenorErro[i];
         }
         
-        nnet.randomizeWeights(-intervaloPesos, intervaloPesos);
+        nnet.randomizeWeights(-INTERVALOPESOS, INTERVALOPESOS);
         //nnet.setWeights(pesos);
         
         /*if(momentum > 0) {
@@ -198,6 +198,8 @@ public class ExercicioComputacional1 {
     
     public static void testNnet(MultiLayerPerceptron nnet, DataSet testSet) {
         XYSeries pontos = new XYSeries("Função");
+        double erro = 0;
+        int tamanho = testSet.getRows().size();
         for(DataSetRow row : testSet.getRows()) {
             nnet.setInput(row.getInput());
             nnet.calculate();
@@ -205,11 +207,14 @@ public class ExercicioComputacional1 {
             pontos.add(row.getInput()[0], networkOutput[0]);
             System.out.print("Input: " + Arrays.toString(row.getInput()) + " ");
             System.out.println("Output: " + Arrays.toString(networkOutput) );
+            erro = erro + Math.pow(row.getDesiredOutput()[0] - networkOutput[0],2);
         }
+        erro = erro / tamanho;
+        System.out.println("Erro teste: "+erro);
         plotarGrafico(pontos, "Função Aproximada Através da Rede Neural", "X", "Y");
     }
     
-    public static void testFullNnet(MultiLayerPerceptron nnet, DataSet fullSet) {
+    /*public static void testFullNnet(MultiLayerPerceptron nnet, DataSet fullSet) {
         XYSeries pontos = new XYSeries("Função");
         for(DataSetRow row : fullSet.getRows()) {
             nnet.setInput(row.getInput());
@@ -220,7 +225,7 @@ public class ExercicioComputacional1 {
             System.out.println("Output: " + Arrays.toString(networkOutput) );
         }
         plotarGrafico(pontos, "Função Aproximada Através da Rede Neural", "X", "Y");
-    }
+    }*/
     
     public static void plotarGrafico(XYSeries pontos, String tituloGrafico, String nomeEixoX, String nomeEixoY) {
         
@@ -271,13 +276,13 @@ public class ExercicioComputacional1 {
      */
     public static void main(String[] args) throws IOException {
         
-        // Parâmetros alteráveis
+        // Parâmetros variáveis
         double learningRate = 0.01;
         double momentum = 0;
         int qtdNeuronsHiddenLayer = 5;
         
         // Critério de parada
-        int qtdMaximunIteration = 200;
+        int qtdMaximumIteration = 200;
         
         //Validar e testar?
         boolean validateAndTest = true;
@@ -297,14 +302,14 @@ public class ExercicioComputacional1 {
         DataSet ds = getDataSet(filenameTraining, separator);
         
         //Treinando a rede neural
-        trainNnet(mlp, ds, learningRate, momentum, qtdMaximunIteration);
+        trainNnet(mlp, ds, learningRate, momentum, qtdMaximumIteration);
         
         if(validateAndTest) {
             //Lendo conjunto de validação
             ds = getDataSet(filenameValidation, separator);
 
             //Validando a rede neural
-            validateNnet(mlp, ds, learningRate, momentum, qtdMaximunIteration);
+            validateNnet(mlp, ds, learningRate, momentum, qtdMaximumIteration);
             
             //Lendo conjunto de teste
             ds = getDataSet(filenameTest, separator);
